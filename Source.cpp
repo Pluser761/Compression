@@ -8,8 +8,8 @@ using namespace std;
 int main()
 {
 	string s = "file.pdf";
-	code(s);
 
+	get_tree(s);
 
 	system("pause");
 	return 0;

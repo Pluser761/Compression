@@ -1,62 +1,110 @@
 #pragma once
 #include <list>
+#include <map>
 #include <algorithm>
 
 using namespace std;
 
-class node
+class tree
 {
 private:
 	char letter;
-	char second_letter;
 	int quantity;
 public:
-	node()
+	tree *first;
+	tree *second;
+
+	tree()
 	{
 
 	}
-	node(char l)
+	tree(char l)
 	{
 		letter = l;
 		quantity = 1;
+		first = nullptr;
+		second = nullptr;
 	}
-	~node()
+	tree(char l, int n)
+	{
+		letter = l;
+		quantity = n;
+		first = nullptr;
+		second = nullptr;
+	}
+	tree(list<tree>::iterator t1, list<tree>::iterator t2)
+	{
+		quantity = 0;
+
+		if (t1->quantity == 0)
+			first = new tree(t1->first, t1->second);
+		else
+			first = new tree(t1->letter, t1->quantity);
+
+		if (t2->quantity == 0)
+			second = new tree(t2->first, t2->second);
+		else
+			second = new tree(t2->letter, t2->quantity);
+	}
+	tree(tree* t1, tree* t2)
+	{
+		if (t1->quantity == 0)
+			first = new tree(t1->first, t1->second);
+		else
+			first = new tree(t1->letter, t1->quantity);
+
+		if (t2->quantity == 0)
+			second = new tree(t2->first, t2->second);
+		else
+			second = new tree(t2->letter, t2->quantity);
+	}
+	~tree()
 	{}
+
 	void operator++(int)
 	{
-		quantity++;
+		this->quantity++;
 	}
-	bool const operator==(const node& st)
+	bool const operator==(const tree& st)
 	{
 		return (st.letter == letter);
 	}
-	bool const operator==(const char& st)
+	friend ostream& operator<<(ostream& out, const tree& st)
 	{
-		return (st == letter);
+		if (st.first)
+			out << *(st.first);
+		if (st.quantity != 0)
+			out << "\"" << st.letter << "\"" << endl;
+		if (st.second)
+			out << *(st.second);
+		return out;
 	}
-	char const get_letter() { return letter; }
-	int const get_quantity() { return quantity; }
 
+	char const get_letter()
+	{
+		if (quantity != 0) return this->letter;
+		else exit(1);
+	}
+	int const get_quantity()
+	{
+		if (quantity == 0) return first->get_quantity() + second->get_quantity();
+		else return this->quantity;
+	}
+
+	map<int, char> codes_collection()
+	{
+		
+	}
 };
 
-struct branch
-{
-	node data;
-	branch *l, *r;
-};
 
-list<node> letters; //алфавит
 
 void writer()
 {
-	for_each(letters.begin(), letters.end(), [](node n)
-	{
-		cout << n.get_letter() << " = " << n.get_quantity() << endl;
-	}
-	);
+	
 }
 
-list<int> code(string s)
+tree get_tree(string s)
 {
 	char *st = new char[s.length()+1];
 
@@ -66,23 +114,37 @@ list<int> code(string s)
 
 	ifstream fin(st, ifstream::in);
 	ofstream fout("Text.txt", ofstream::out);
+	list<tree> letters; //алфавит
 	char c;
 
 	for (fin >> c; !fin.eof(); fin >> c)
 	{
 		//fout << c;
-		list<node>::iterator finder = find(letters.begin(), letters.end(), c);
+		list<tree>::iterator finder = find(letters.begin(), letters.end(), tree(c));
 		if (finder == letters.end())
-		{
-			letters.push_back(node(c));
-		}
+			letters.push_back(tree(c));
 		else
 			(*finder)++;
 	}
 
-	writer();
-	
+	while (letters.size() != 1)
+	{
+		letters.sort([](tree &first, tree &second) -> bool
+		{
+			return (first.get_quantity() < second.get_quantity());
+		});
 
-	return list<int>();
+		tree inserter(next(letters.begin(), 0), next(letters.begin(), 1));
+		letters.pop_front();
+		letters.pop_front();
+		letters.push_front(inserter);
+	}
+	
+	//output letters
+
+	cout << letters.front();
+
+	return tree();
 }
+
 
